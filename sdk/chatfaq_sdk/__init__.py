@@ -387,6 +387,20 @@ class ChatFAQSDK:
             )
         )
 
+    async def retriever_request(
+        self, retriever_config_name, query, top_k=3
+    ):
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                urllib.parse.urljoin(
+                    self.chatfaq_http,
+                    f"back/api/language-model/retrieve/?retriever_config__name={retriever_config_name}&query={query}&top_k={top_k}"
+                ),
+                headers={"Authorization": f"Token {self.token}"},
+            )
+            response.raise_for_status()
+            return response.json()
+
     async def query_kis(self, knowledge_base_name, query: Optional[dict] = None) -> List[KnowledgeItem]:
         res = []
         offset = 0
@@ -422,6 +436,34 @@ class ChatFAQSDK:
             results = response.json()["results"]
             if results:
                 return results[0]["prompt"]
+
+    async def submit_feedback_last_bot_msg(self, ctx: dict, value: str, comment: str):
+        conv_mml = ctx.get("conv_mml", [])
+        last_bot_message_id = None
+        for i in reversed(conv_mml):
+            if i["sender"]["type"] == "bot" and i["stack"]:
+                last_bot_message_id = i["id"]
+                break
+        if last_bot_message_id:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    urllib.parse.urljoin(
+                        self.chatfaq_http,
+                        f"back/api/broker/user-feedback/",
+                    ),
+                    json={
+                        "message_source": last_bot_message_id,
+                        "message_target": last_bot_message_id,
+                        "feedback_data": {
+                            "thumb_value": value,
+                            "feedback_comment": comment,
+                        },
+                    },
+                    headers={"Authorization": f"Token {self.token}"},
+                )
+                response.raise_for_status()
+                return response.json()
+        return False
 
     async def send_prompt_request(self, prompt_config_name, bot_channel_name):
         logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")

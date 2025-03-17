@@ -9,6 +9,7 @@ from back.apps.broker.consumers.message_types import (
     RPCNodeType,
 )
 from back.apps.broker.models.message import AgentType
+from back.apps.broker.serializers import RetrieverRequestSerializer
 from back.config.storage_backends import (
     PrivateMediaLocalStorage,
     select_private_storage,
@@ -168,12 +169,8 @@ class RPCPromptRequestSerializer(serializers.Serializer):
     bot_channel_name = serializers.CharField()
 
 
-class RPCRetrieverRequestSerializer(serializers.Serializer):
-
+class RPCRetrieverRequestSerializer(RetrieverRequestSerializer):
     retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    bot_channel_name = serializers.CharField()
-    query = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    top_k = serializers.IntegerField(default=3)
 
 
 class RegisterParsersSerializer(serializers.Serializer):

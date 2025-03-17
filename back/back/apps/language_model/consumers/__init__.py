@@ -43,7 +43,7 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
     ----------
     msgs_chain :
         A list of messages in the broker format.
-        
+
     Returns
     -------
     List[Message]
@@ -299,14 +299,25 @@ async def query_llm(
             }
         # chat_rag models don't support streaming when using tools
         elif stream:
+            extra_args = {}
+            # check if llm.astream signature has "thinking" and "cache_config"
+            if "thinking" in llm.astream.__code__.co_varnames:
+                extra_args = {
+                    "thinking": thinking,
+                }
+            if "cache_config" in llm.astream.__code__.co_varnames:
+                extra_args = {
+                    **extra_args,
+                    "cache_config": cache_config,
+                }
             response = llm.astream(
                 messages=new_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
-                thinking=thinking,
-                cache_config=cache_config,
+                **extra_args
             )
+
             async for res in response:
                 yield {
                     "content": res,
@@ -318,15 +329,25 @@ async def query_llm(
             }
 
         else:
+            extra_args = {}
+            # check if llm.agenerate signature has "thinking" and "cache_config"
+            if "thinking" in llm.agenerate.__code__.co_varnames:
+                extra_args = {
+                    "thinking": thinking,
+                }
+            if "cache_config" in llm.agenerate.__code__.co_varnames:
+                extra_args = {
+                    **extra_args,
+                    "cache_config": cache_config,
+                }
             response_message = await llm.agenerate(
                 messages=new_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
-                thinking=thinking,
                 tools=tools,
                 tool_choice=tool_choice,
-                cache_config=cache_config,
+                **extra_args
             )
             yield {
                 "content": [content.model_dump() for content in response_message.content], # Make it serializable

@@ -56,6 +56,8 @@ class Widget(models.Model):
     allow_attachments = models.BooleanField(default=False)
     disable_day_night_mode = models.BooleanField(default=False)
     enable_logout = models.BooleanField(default=False)
+    hide_sources = models.BooleanField(default=False)
+    show_tool_messages = models.BooleanField(default=False)
     # interfacing
     # # in
     speech_recognition = models.BooleanField(default=False)

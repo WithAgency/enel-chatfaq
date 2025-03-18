@@ -76,7 +76,7 @@ const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
-const notRenderableStackTypes = ["gtm_tag", "close_conversation", "tool_use", "tool_result", undefined]
+const notRenderableStackTypes = ["gtm_tag", "close_conversation", undefined]
 const conversationClosed = ref(false)
 
 let ws = undefined

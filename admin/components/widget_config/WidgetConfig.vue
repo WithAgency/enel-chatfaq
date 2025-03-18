@@ -34,6 +34,7 @@
                         'disable_day_night_mode',
                         'enable_logout',
                         'hide_sources',
+                        'show_tool_messages',
                         'sources_first',
                         'stick_input_prompt',
                         'fit_to_parent',

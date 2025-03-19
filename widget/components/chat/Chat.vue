@@ -316,7 +316,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning && !conversationClosed.value
+    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionListening && !conversationClosed.value
 }
 
 function createMessageFromInputPrompt() {
@@ -367,7 +367,7 @@ function sendToGTM(msg) {
 
 function speechToText() {
     const sr = speechRecognition.value;
-    if (store.speechRecognitionRunning || !store.speechRecognition) {
+    if (store.speechRecognitionListening || !store.speechRecognition) {
         sr.stop()
         return
     }
@@ -421,8 +421,9 @@ function speechToText() {
         sr.stop();
     }
     sr.onerror = (event) => {
+        console.log('Error occurred in the speech recognition:', event)
         console.log('Error occurred in the speech recognition:', event.error)
-        store.speechRecognitionRunning = false;
+        store.speechRecognitionListening = false;
         // Don't restart if we got a not-allowed error, usually because the user has not granted permission
         if (event.error === 'not-allowed') {
             store.speechRecognition = false;  // Disable speech recognition entirely
@@ -432,7 +433,7 @@ function speechToText() {
     }
     sr.onstart = () => {
         if (store.speechRecognition && store.speechRecognitionAlwaysOn)
-            store.speechRecognitionRunning = true;
+            store.speechRecognitionListening = true;
     }
     sr.onend = () => {
         if(store.speechRecognitionPhraseActivated && store.speechRecognition) { // that means we programmatically ended the SR because we detected the activation phrase
@@ -443,7 +444,7 @@ function speechToText() {
             sr.start();
 
         } else if (store.speechRecognition) {
-            store.speechRecognitionRunning = false;
+            store.speechRecognitionListening = false;
             thereIsContent.value = chatInput.value.innerText.length !== 0
             if (store.speechRecognitionAutoSend)
                 sendMessage();
@@ -465,7 +466,7 @@ const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
 })
 const activeSend = computed(() => {
-    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning
+    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionListening
 })
 const _speechRecognitionAlwaysOn = computed(() => {
     return store.speechRecognitionAlwaysOn || (store.activeActivationPhrase)

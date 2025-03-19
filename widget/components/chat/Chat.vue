@@ -390,8 +390,8 @@ function speechToText() {
         sr.stop();
     }
     sr.onresult = (event) => {
-        var final = "";
-        var interim = "";
+        let final = "";
+        let interim = "";
 
         for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].final) {
@@ -405,6 +405,10 @@ function speechToText() {
             !store._speechRecognitionTranscribing &&
             store.activeActivationPhrase
         ) {
+
+            if (window.speechDebug)
+                console.log(`%c ${final + interim} `, 'color: #66ccff');
+
             if (
                 matchActivationPhrase(final + interim)
             ) {
@@ -412,10 +416,15 @@ function speechToText() {
                 sr.stop()
             }
         } else {
-            if (event.results[0].final)
+            if (event.results[0].final) {
                 chatInput.value.innerText = trimFromActivationPhraseForwards(final);
-            else
+                if (window.speechDebug)
+                    console.log(`%c ${final} -> %c ${trimFromActivationPhraseForwards(final)} `, "color: #007700", "color: #00FF00");
+            } else {
                 chatInput.value.innerText = trimFromActivationPhraseForwards(interim);
+                if (window.speechDebug)
+                    console.log(`%c ${interim} -> %c ${trimFromActivationPhraseForwards(interim)} `, "color: #007700", "color: #00FF00");
+            }
         }
     }
     sr.onspeechend = () => {

@@ -33,7 +33,7 @@
                     }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    :contenteditable="!conversationClosed"
+                    :contenteditable="!conversationClosed && !store.speechRecognitionTranscribing"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
@@ -42,9 +42,10 @@
                      'dark-mode': store.darkMode,
                  }"
                  @click="() => {
-                     if (store.activeActivationPhrase) {
+                     if (store.activeActivationPhrase && !availableSend) {
                          store.speechRecognitionPhraseActivated = true
-                     } else if (!conversationClosed && availableMicro) {
+                         speechRecognition.stop()
+                     } else if (!conversationClosed && !store.speechRecognitionTranscribing) {
                          speechToText()
                      } else if (!conversationClosed && availableSend) {
                          sendMessage()
@@ -316,7 +317,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionListening && !conversationClosed.value
+    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionTranscribing && !conversationClosed.value
 }
 
 function createMessageFromInputPrompt() {
@@ -460,13 +461,13 @@ function speechToText() {
 }
 
 const availableSend = computed(() => {
-    return !store.speechRecognition || thereIsContent.value
+    return !store.speechRecognitionTranscribing && thereIsContent.value
 })
 const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
 })
 const activeSend = computed(() => {
-    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionListening
+    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionTranscribing
 })
 const _speechRecognitionAlwaysOn = computed(() => {
     return store.speechRecognitionAlwaysOn || (store.activeActivationPhrase)

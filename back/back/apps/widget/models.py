@@ -24,7 +24,7 @@ class Widget(models.Model):
         default=uuid4,
     )
     name = models.CharField(max_length=255)
-    domain = models.URLField()
+    domain = models.CharField(max_length=2048)
     fsm_def = models.CharField(null=True, max_length=255)
     # chatfaq_api = models.CharField(
     #     max_length=255,

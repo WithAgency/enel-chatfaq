@@ -1,3 +1,4 @@
+import fnmatch
 from logging import getLogger
 from urllib.parse import parse_qs
 
@@ -86,6 +87,6 @@ class IsAuthenticatedOrWidgetOriginHostPermission(BasePermission):
             widget = Widget.objects.get(id=widget_id)
         except Widget.DoesNotExist:
             return False
-        if urlparse(widget.domain).netloc == urlparse(origin).netloc:
+        if fnmatch.fnmatch(urlparse(origin).netloc, widget.domain):
             return True
         return False

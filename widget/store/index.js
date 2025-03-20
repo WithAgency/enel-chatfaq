@@ -27,6 +27,8 @@ export const useGlobalStore = defineStore('globalStore', {
             selectedConversations: [],
             initialSelectedPlConversationId: undefined,
             selectedPlConversationId: undefined,
+            conversationClosed: false,
+            promptWithText: false,
             // The value of this properties (scrollToBottom, feedbackSent) is irrelevant, what it
             // really matters is the fact that its value changed, which happens every time "New Conversation" button is
             // clicked, then other components will subscribe for any change and react to the fact that has been clicked
@@ -40,13 +42,11 @@ export const useGlobalStore = defineStore('globalStore', {
             stateOverride: undefined,
             customIFramedMsgs: {},
             speechRecognition: false,
-            _speechRecognitionTranscribing: false,
+            speechRecognitionTranscribing: false,
             speechRecognitionAutoSend: false,
             speechRecognitionAlwaysOn: false,
             speechRecognitionLang: 'en-US',
             speechRecognitionPhraseActivation: undefined,
-            speechRecognitionListening: false,
-            speechRecognitionPhraseActivated: false,
             speechRecognitionBeep: false,
             allowAttachments: false,
             authToken: undefined,
@@ -260,8 +260,8 @@ export const useGlobalStore = defineStore('globalStore', {
                 return
             return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
         },
-        speechRecognitionTranscribing: (state) => {
-            return state.speechRecognitionListening && (state._speechRecognitionTranscribing || !state.activeActivationPhrase)
+        promptEditable: (state) => {
+            return !(state.conversationClosed || state.speechRecognitionTranscribing)
         }
     }
 })

@@ -167,9 +167,9 @@ function initStore() {
     store.stickInputPrompt = data.stickInputPrompt
     store.speechRecognition = data.speechRecognition
     store.speechRecognitionLang = data.speechRecognitionLang || store.speechRecognitionLang
-    store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn
-    store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
-    store.speechRecognitionPhraseActivation = data.speechRecognitionPhraseActivation
+    store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn && !data.speechRecognitionPhraseActivation
+    store.speechRecognitionAutoSend = data.speechRecognitionAutoSend || data.speechRecognitionAlwaysOn
+    store.speechRecognitionPhraseActivation = !data.speechRecognitionAlwaysOn ? data.speechRecognitionPhraseActivation : undefined
     store.speechRecognitionBeep = data.speechRecognitionBeep
     store.allowAttachments = data.allowAttachments
     store.authToken = data.authToken

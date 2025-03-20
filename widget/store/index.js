@@ -250,18 +250,12 @@ export const useGlobalStore = defineStore('globalStore', {
                 return response.results[0].feedback_data
             }
         },
-        activeActivationPhrase: (state) => {
-            if (state.speechRecognitionPhraseActivation)
-                return state.speechRecognitionPhraseActivation.length > 0
-            return false
-        },
-        getSpeechSynthesisVoice: (state) => (voiceURI) => {
-            if (state.speechSynthesisVoices.length === 0)
-                return
-            return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
-        },
+
         promptEditable: (state) => {
             return !(state.conversationClosed || state.speechRecognitionTranscribing)
+        },
+        canSendMsg: (state) => {
+            return !state.waitingForResponse && !state.disconnected && !state.speechRecognitionTranscribing && !state.conversationClosed
         }
     }
 })

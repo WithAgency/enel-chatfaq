@@ -121,7 +121,7 @@ function initSTT() {
         const text = stt.value.gatherText(event)
         emit('text', text)
         if (window.speechDebug)
-            console.log(`%c ${trimFromActivationPhraseForwards(text)} `, "color: #00FF00");
+            console.log(`%c ${text} `, "color: #00FF00");
     }
     stt.value.onend = () => {
         store.speechRecognitionTranscribing = false;

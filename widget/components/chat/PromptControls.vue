@@ -46,7 +46,7 @@ watch(() => store.selectedPlConversationId, () => {
 })
 
 const activeSend = computed(() => {
-    return !store.speechRecognitionTranscribing && !store.waitingForResponse && !store.disconnected
+    return !store.speechRecognitionTranscribing && !store.waitingForResponse && !store.disconnected && store.promptWithText
 })
 
 const activeMicro = computed(() => {

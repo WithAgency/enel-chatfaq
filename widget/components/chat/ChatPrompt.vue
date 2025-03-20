@@ -20,7 +20,7 @@
     </div>
 </template>
 <script setup>
-import {ref, watch, onMounted, computed} from "vue";
+import {ref} from "vue";
 
 import PromptControls from "~/components/chat/PromptControls.vue";
 import Attach from "~/components/icons/Attach.vue";

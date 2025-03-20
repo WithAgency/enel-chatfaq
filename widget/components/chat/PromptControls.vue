@@ -121,7 +121,7 @@ function initSTT() {
         const text = stt.value.gatherText(event)
         emit('text', text)
         if (window.speechDebug)
-            console.log(`%c ${text} -> %c ${trimFromActivationPhraseForwards(text)} `, "color: #007700", "color: #00FF00");
+            console.log(`%c ${trimFromActivationPhraseForwards(text)} `, "color: #00FF00");
     }
     stt.value.onend = () => {
         store.speechRecognitionTranscribing = false;
@@ -139,6 +139,11 @@ function initSTT() {
 
 function initSTTPhrase() {
     sttPhrase.value = _initSTT();
+
+    const gramList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
+    gramList.addFromString(`#JSGF V1.0; grammar activationPhrase; public <activationPhrase> = ${store.speechRecognitionPhraseActivation} ;`, 1);
+    sttPhrase.value.grammars = gramList;
+
     sttPhrase.value.started = false
     sttPhrase.value.addEventListener("start", () => sttPhrase.value.started = true)
 
@@ -170,14 +175,6 @@ function initSTTPhrase() {
 // ---------------------------------------- UTILS ----------------------------------------
 function matchActivationPhrase(text) {
     return text.toLowerCase().includes(store.speechRecognitionPhraseActivation.toLowerCase())
-}
-
-function trimFromActivationPhraseForwards(text) {
-    if (!store.speechRecognitionPhraseActivation)
-        return text
-    if (text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) > -1)
-        return text.substring(text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) + store.speechRecognitionPhraseActivation.length)
-    return text
 }
 
 </script>

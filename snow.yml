@@ -14,7 +14,11 @@ components:
   - id: back
     image: back
     envs: [back]
-    size_hint: ram >= 512m
+    size_hint: ram >= 1g
+  - id: migrate
+    image: back
+    envs: [back]
+    size_hint: ram >= 2g
 
 ingresses:
   - match:
@@ -30,8 +34,8 @@ ingresses:
 
 hooks:
   - when: 'pre-deploy'
-    component: chatfaq-migrate
-    run_command: modelw-docker run python manage.py migrate
+    component: migrate
+    run_command: modelw-docker run bash -c "python manage.py migrate"
 
 domains:
   - id: back
@@ -70,5 +74,5 @@ envs:
     STORAGES_MODE: 'do'
     STORAGE_MAKE_FILES_PUBLIC: 'no'
     DO_REGION: '${{ vars::AWS_S3_REGION_NAME }}'
-    OPENAI_API_KEY: '${{ secrets::OPENAI_API_KEY }}'
+    GOOGLE_API_KEY: '${{ secrets::GOOGLE_API_KEY }}'
     USE_RAY: 'False'

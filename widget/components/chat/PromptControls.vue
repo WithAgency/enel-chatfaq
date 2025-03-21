@@ -1,12 +1,14 @@
 <template>
     <div v-if="store.speechRecognition && (!store.promptWithText || store.speechRecognitionTranscribing)" :class="{'dark-mode': store.darkMode}" class="prompt-right-button"
          @click="() => {
-             if (activeMicro)
-                 if (sttPhrase && sttPhrase.started){
+             if (activeMicro) {
+                 if (sttPhrase && sttPhrase.started) {
                      speechRecognitionPhraseActivated = true
                      sttPhrase.stop()
+                 } else {
+                     stt.value.start();
                  }
-                 stt.start()
+             }
          }">
         <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
         <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
@@ -75,10 +77,13 @@ function _initSTT(continuous = false) {
     sr.continuous = continuous;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
+    sr.started = false;
 
     sr.addEventListener("audioend", sr.stop)
     sr.addEventListener("soundend", sr.stop)
     sr.addEventListener("speechend", sr.stop)
+    sr.addEventListener("start", () => sr.started = true)
+    sr.addEventListener("end", () => sr.started = false)
 
     sr.onerror = (event) => {
         console.log('Error occurred in the speech recognition:', event)
@@ -123,7 +128,7 @@ function initSTT() {
         if (window.speechDebug)
             console.log(`%c ${text} `, "color: #00FF00");
     }
-    stt.value.onend = () => {
+    stt.value.addEventListener("end", () => {
         store.speechRecognitionTranscribing = false;
 
         if (store.speechRecognitionBeep)
@@ -134,7 +139,7 @@ function initSTT() {
 
         if (store.speechRecognitionPhraseActivation)
             sttPhrase.value.start();
-    }
+    })
 }
 
 function initSTTPhrase() {
@@ -143,9 +148,6 @@ function initSTTPhrase() {
     const gramList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
     gramList.addFromString(`#JSGF V1.0; grammar activationPhrase; public <activationPhrase> = ${store.speechRecognitionPhraseActivation} ;`, 1);
     sttPhrase.value.grammars = gramList;
-
-    sttPhrase.value.started = false
-    sttPhrase.value.addEventListener("start", () => sttPhrase.value.started = true)
 
     sttPhrase.value.onresult = (event) => {
         const text = sttPhrase.value.gatherText(event)
@@ -160,7 +162,8 @@ function initSTTPhrase() {
             }
         }
     }
-    sttPhrase.value.onend = () => {
+
+    sttPhrase.value.addEventListener("end", () => {
 
         if(speechRecognitionPhraseActivated.value) { // that means we programmatically ended the SR because we detected the activation phrase
             speechRecognitionPhraseActivated.value = false
@@ -168,7 +171,7 @@ function initSTTPhrase() {
         } else {
             sttPhrase.value.start();
         }
-    }
+    })
     sttPhrase.value.start();
 }
 

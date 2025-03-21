@@ -1,12 +1,5 @@
 <template>
-    <div v-if="!store.speechRecognitionTranscribing"
-         :class="{'dark-mode': store.darkMode}"
-         class="prompt-right-button"
-         @click="() => {if(activeSend) {emit('send')}}"
-    >
-        <Send class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
-    </div>
-    <div v-else-if="store.speechRecognition" :class="{'dark-mode': store.darkMode}" class="prompt-right-button"
+    <div v-if="store.speechRecognition && (!store.promptWithText || store.speechRecognitionTranscribing)" :class="{'dark-mode': store.darkMode}" class="prompt-right-button"
          @click="() => {
              if (activeMicro)
                  if (sttPhrase && sttPhrase.started){
@@ -18,6 +11,13 @@
         <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
         <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
         <Microphone :class="{'active': activeMicro, 'dark-mode': store.darkMode}" class="chat-prompt-button micro" />
+    </div>
+    <div v-else
+         :class="{'dark-mode': store.darkMode}"
+         class="prompt-right-button"
+         @click="() => {if(activeSend) {emit('send')}}"
+    >
+        <Send class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
     </div>
 </template>
 

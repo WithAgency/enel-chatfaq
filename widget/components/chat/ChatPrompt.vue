@@ -13,7 +13,7 @@
                 }"
                 ref="chatInput"
                 @keydown="(ev) => manageHotKeys(ev)"
-                @input="($event)=>store.promptWithText = $event.target.innerHTML.trim().length !== 0"
+                @input="($event)=>{store.promptWithText = $event.target.innerHTML.trim().length !== 0 && $event.target.innerHTML.trim() !== '<br>'; }"
             />
         </div>
         <PromptControls @send="emit('send', createSendMessage())" @text="(text) => {chatInput.innerText = text; store.promptWithText = text.trim().length !== 0}"/>

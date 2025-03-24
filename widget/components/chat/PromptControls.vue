@@ -85,12 +85,12 @@ function _initSTT(continuous = false, phrase = false) {
     sr.addEventListener("start", () => {
         sr.started = true;
         if (window.speechDebug)
-            console.log(`STT ${ _type } started`)
+            console.log(`STT ${ _type } started`, 'color: #ffcc00');
     })
     sr.addEventListener("end", () => {
         sr.started = false;
         if (window.speechDebug)
-            console.log(`STT ${ _type } finished`)
+            console.log(`STT ${ _type } finished`, 'color: #ffcc00');
     })
 
     sr.onerror = (event) => {
@@ -176,8 +176,9 @@ function initSTTPhrase() {
             sttPhrase.value.start();
         }
     })
-    console.log("starting phrase activation SR...")
-    // sttPhrase.value.start();
+    if (window.speechDebug)
+        console.log(`starting phrase activation SR... `, 'color: #ffcc00');
+    sttPhrase.value.start();
 }
 
 // ---------------------------------------- UTILS ----------------------------------------

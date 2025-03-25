@@ -48,6 +48,7 @@
                         'speech_recognition_always_on',
                         'speech_recognition_phrase_activation',
                         'speech_recognition_beep',
+                        'speech_recognition_interim_results',
                         'speech_synthesis',
                         'speech_synthesis_pitch',
                         'speech_synthesis_rate',

@@ -70,12 +70,12 @@ onMounted(async () => {
 
 })
 
-function _initSTT(continuous = false, phrase = false) {
+function _initSTT(phrase = false) {
     const sr = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     const _type =  phrase ? 'Phrase activation' : 'Transcriber'
     sr.lang = store.speechRecognitionLang;
-    sr.continuous = continuous;
-    sr.interimResults = true;
+    sr.continuous = false;
+    sr.interimResults = store.speechRecognitionInterimResults;
     sr.maxAlternatives = 1;
     sr.started = false;
 
@@ -85,16 +85,16 @@ function _initSTT(continuous = false, phrase = false) {
     sr.addEventListener("start", () => {
         sr.started = true;
         if (window.speechDebug)
-            console.log(`STT ${ _type } started`, 'color: #ffcc00');
+            console.log(`%c STT ${ _type } started`, 'color: #ffcc00');
     })
     sr.addEventListener("end", () => {
         sr.started = false;
         if (window.speechDebug)
-            console.log(`STT ${ _type } finished`, 'color: #ffcc00');
+            console.log(`%c STT ${ _type } finished`, 'color: #ffcc00');
     })
 
     sr.onerror = (event) => {
-        console.log(`Error occurred in the speech recognition: ${ _type } `, event)
+        console.log(`%c Error occurred in the speech recognition: ${ _type } `, 'color: #ff0000', event)
         // Don't restart if we got a not-allowed error, usually because the user has not granted permission
         if (event.error === 'not-allowed') {
             store.speechRecognition = false;  // Disable speech recognition entirely
@@ -151,7 +151,7 @@ function initSTT() {
 }
 
 function initSTTPhrase() {
-    sttPhrase.value = _initSTT(true, true);
+    sttPhrase.value = _initSTT(true);
 
     sttPhrase.value.onresult = (event) => {
         const text = sttPhrase.value.gatherText(event)
@@ -177,7 +177,7 @@ function initSTTPhrase() {
         }
     })
     if (window.speechDebug)
-        console.log(`starting phrase activation SR... `, 'color: #ffcc00');
+        console.log(`%c starting phrase activation SR... `, 'color: #ffcc00');
     sttPhrase.value.start();
 }
 

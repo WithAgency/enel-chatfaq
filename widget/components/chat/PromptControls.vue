@@ -6,7 +6,7 @@
                      speechRecognitionPhraseActivated = true
                      sttPhrase.stop()
                  } else {
-                     stt.value.start();
+                     stt.start();
                  }
              }
          }">
@@ -62,7 +62,6 @@ const emit = defineEmits(['send', 'text'])
 onMounted(async () => {
     if (!store.speechRecognition)
         return
-
     initSTT();
     if (store.speechRecognitionPhraseActivation)
         initSTTPhrase();
@@ -71,22 +70,31 @@ onMounted(async () => {
 
 })
 
-function _initSTT(continuous = false) {
+function _initSTT(phrase = false) {
     const sr = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    const _type =  phrase ? 'Phrase activation' : 'Transcriber'
     sr.lang = store.speechRecognitionLang;
-    sr.continuous = continuous;
-    sr.interimResults = true;
+    sr.continuous = false;
+    sr.interimResults = store.speechRecognitionInterimResults;
     sr.maxAlternatives = 1;
     sr.started = false;
 
     sr.addEventListener("audioend", sr.stop)
     sr.addEventListener("soundend", sr.stop)
     sr.addEventListener("speechend", sr.stop)
-    sr.addEventListener("start", () => sr.started = true)
-    sr.addEventListener("end", () => sr.started = false)
+    sr.addEventListener("start", () => {
+        sr.started = true;
+        if (window.speechDebug)
+            console.log(`%c STT ${ _type } started`, 'color: #ffcc00');
+    })
+    sr.addEventListener("end", () => {
+        sr.started = false;
+        if (window.speechDebug)
+            console.log(`%c STT ${ _type } finished`, 'color: #ffcc00');
+    })
 
     sr.onerror = (event) => {
-        console.log('Error occurred in the speech recognition:', event)
+        console.log(`%c Error occurred in the speech recognition: ${ _type } `, 'color: #ff0000', event)
         // Don't restart if we got a not-allowed error, usually because the user has not granted permission
         if (event.error === 'not-allowed') {
             store.speechRecognition = false;  // Disable speech recognition entirely
@@ -143,11 +151,7 @@ function initSTT() {
 }
 
 function initSTTPhrase() {
-    sttPhrase.value = _initSTT();
-
-    const gramList = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
-    gramList.addFromString(`#JSGF V1.0; grammar activationPhrase; public <activationPhrase> = ${store.speechRecognitionPhraseActivation} ;`, 1);
-    sttPhrase.value.grammars = gramList;
+    sttPhrase.value = _initSTT(true);
 
     sttPhrase.value.onresult = (event) => {
         const text = sttPhrase.value.gatherText(event)
@@ -172,6 +176,8 @@ function initSTTPhrase() {
             sttPhrase.value.start();
         }
     })
+    if (window.speechDebug)
+        console.log(`%c starting phrase activation SR... `, 'color: #ffcc00');
     sttPhrase.value.start();
 }
 

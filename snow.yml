@@ -76,3 +76,4 @@ envs:
     DO_REGION: '${{ vars::AWS_S3_REGION_NAME }}'
     GOOGLE_API_KEY: '${{ secrets::GOOGLE_API_KEY }}'
     USE_RAY: 'False'
+    TOGETHER_API_KEY: '${{ secrets::TOGETHER_API_KEY }}'

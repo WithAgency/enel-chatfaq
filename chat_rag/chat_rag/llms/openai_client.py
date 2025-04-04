@@ -166,7 +166,7 @@ class OpenAIChatModel(LLM):
             seed=seed,
             n=1,
             stream=True,
-            reasoning_effort=thinking,
+            reasoning_effort=thinking if thinking else NOT_GIVEN,
         )
         for chunk in response:
             if chunk.choices[0].finish_reason == "stop":
@@ -203,7 +203,7 @@ class OpenAIChatModel(LLM):
             seed=seed,
             n=1,
             stream=True,
-            reasoning_effort=thinking,
+            reasoning_effort=thinking if thinking else NOT_GIVEN,
         )
         async for chunk in response:
             if chunk.choices[0].finish_reason == "stop":
@@ -244,7 +244,7 @@ class OpenAIChatModel(LLM):
             temperature=temperature,
             max_completion_tokens=max_tokens,
             seed=seed,
-            reasoning_effort=thinking,
+            reasoning_effort=thinking if thinking else NOT_GIVEN,
             n=1,
             tools=tools,
             tool_choice=tool_choice,
@@ -285,7 +285,7 @@ class OpenAIChatModel(LLM):
             temperature=temperature,
             max_completion_tokens=max_tokens,
             seed=seed,
-            reasoning_effort=thinking,
+            reasoning_effort=thinking if thinking else NOT_GIVEN,
             n=1,
             tools=tools,
             tool_choice=tool_choice,

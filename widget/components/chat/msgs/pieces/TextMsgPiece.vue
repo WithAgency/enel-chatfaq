@@ -262,6 +262,9 @@ const receivedContent = ref(''); // Track the entire received content
 
 // ------- non-streaming messages -------
 onMounted(() => {
+    // Conceptual: ensure store properties are initialized if not already
+    // store.isTTSPlaying = store.isTTSPlaying || ref(false);
+    // store.ttsShouldBeInterrupted = store.ttsShouldBeInterrupted || ref(false);
     speechIt({ data: props.data, isLastChunk: props.isLastChunk })
 });
 // ------- streaming messages -------
@@ -271,13 +274,34 @@ watch (() => store.speechVoicesInitialized, (val) => {
     if (val)
         speechIt({ data: props.data, isLastChunk: props.isLastChunk })
 })
-watch(() => store.speechRecognitionTranscribing, (val) => {
-    if (val)
+watch(() => store.speechRecognitionTranscribing, (val) => { // This is for the old STT system
+    if (val && store.speechSynthesisEnabled && !store.speechRecognitionAlwaysOn) { // Only cancel if old STT is active and new system isn't
         cancelSynthesis();
+    }
 })
+
+// New watcher for TTS interruption signal from the store
+watch(() => store.ttsShouldBeInterrupted, (shouldInterrupt) => {
+    if (shouldInterrupt && store.speechSynthesisEnabled) {
+        console.log("TTS interruption signal received in TextMsgPiece.");
+        cancelSynthesis();
+        if (typeof store.clearTTSInterrupt === 'function') {
+            store.clearTTSInterrupt(); // Reset the flag in the store
+        } else {
+            store.ttsShouldBeInterrupted = false; // Fallback if not a store action
+        }
+    }
+});
 
 function speechIt ({ data: newMessage, isLastChunk }) {
     if (store.speechSynthesisEnabled && store.speechVoicesInitialized) {
+        if (store.ttsShouldBeInterrupted) { // Check before starting new speech
+            console.log("TTS was interrupted, not starting new speech.");
+            cancelSynthesis(); // Ensure everything is stopped and cleared
+            if (typeof store.clearTTSInterrupt === 'function') store.clearTTSInterrupt(); else store.ttsShouldBeInterrupted = false;
+            return;
+        }
+
         const newContent = newMessage.payload.content;
 
         // Calculate delta from the last received content
@@ -301,6 +325,7 @@ function speechIt ({ data: newMessage, isLastChunk }) {
 
         // Speak remaining text when it's the last message
         if (isLastChunk && speechBuffer.value.trim().length > 0) {
+            if (store.ttsShouldBeInterrupted) { cancelSynthesis(); if (typeof store.clearTTSInterrupt === 'function') store.clearTTSInterrupt(); else store.ttsShouldBeInterrupted = false; return; }
             const utterance = new SpeechSynthesisUtterance(speechBuffer.value);
             configureUtterance(utterance);
             speechSynthesis.speak(utterance);
@@ -324,15 +349,30 @@ function configureUtterance(utterance) {
             utterance.voice = voice;
         }
     }
+    // Update isTTSPlaying state
+    utterance.onstart = () => {
+        store.isTTSPlaying = true;
+    };
+    utterance.onend = () => {
+        store.isTTSPlaying = false;
+        // Ensure buffer related to this utterance is cleared if it was the last thing spoken from buffer
+        // This logic is tricky as speechBuffer might have new content. Simpler to clear in speechIt.
+    };
+    utterance.onerror = (event) => {
+        console.error("Speech synthesis error:", event);
+        store.isTTSPlaying = false;
+        if (typeof store.clearTTSInterrupt === 'function') store.clearTTSInterrupt(); else store.ttsShouldBeInterrupted = false; // Clear interrupt on error too
+    };
 }
 
 
 function cancelSynthesis() {
     if (speechSynthesis) {
         speechSynthesis.cancel(); // Stop any ongoing speech
-        speechBuffer.value = ''; // Clear the speech buffer
-        receivedContent.value = ''; // Reset received content
     }
+    speechBuffer.value = ''; // Clear the speech buffer
+    receivedContent.value = ''; // Reset received content
+    store.isTTSPlaying = false; // Ensure playing state is reset
 }
 
 onBeforeUnmount(cancelSynthesis);

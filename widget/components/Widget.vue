@@ -109,6 +109,7 @@ watch( () => props.customCss, async (newVal, _)=> {
     await init()
 }, {immediate: true, deep: true})
 async function init() {
+    console.log("[Widget.vue] Initializing with props.speechRecognitionAlwaysOn:", props.speechRecognitionAlwaysOn);
     if(_customCss.value) {
         const customCss = document.getElementById("custom-css");
         if (customCss)
@@ -119,42 +120,52 @@ async function init() {
         document.head.appendChild(style);
     }
 
-    if (props.widgetConfigId !== undefined) {
-        const headers = {
-            'widget-id': props.widgetConfigId,
-        }
-        if (props.authToken)
-            headers.Authorization = `Token ${props.authToken}`;
-
-        const response = await chatfaqFetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
-        let server_data = await response.json();
-        // sneak case data keys to lowerCamelCase:
-        server_data = Object.keys(server_data).reduce((acc, key) => {
-            acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = server_data[key];
-            return acc;
-        }, {});
-
-        const merged_data = {}
-        for (const key in data) {
-            if (jsonProps.indexOf(key) > -1) {
-                if (typeof data[key] == "string" && data[key].length > 0)
-                    data[key] = JSON.parse(data[key] || "{}")
-                merged_data[key] = {...data[key], ...server_data[key]}
+    try {
+        if (props.widgetConfigId !== undefined) {
+            const headers = {
+                'widget-id': props.widgetConfigId,
             }
-            else
-                merged_data[key] = data[key] || server_data[key]
-        }
-        for (const key in server_data) {
-            if (data[key] === undefined)
-                merged_data[key] = server_data[key]
-        }
-        data = merged_data
+            if (props.authToken)
+                headers.Authorization = `Token ${props.authToken}`;
 
-        const style = document.createElement('style');
-        style.innerHTML = data.css;
-        document.head.appendChild(style);
+            const response = await chatfaqFetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch widget config: ${response.status} ${response.statusText}`);
+            }
+            let server_data = await response.json();
+            // sneak case data keys to lowerCamelCase:
+            server_data = Object.keys(server_data).reduce((acc, key) => {
+                acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = server_data[key];
+                return acc;
+            }, {});
+
+            const merged_data = {}
+            for (const key in data) {
+                if (jsonProps.indexOf(key) > -1) {
+                    if (typeof data[key] == "string" && data[key].length > 0)
+                        data[key] = JSON.parse(data[key] || "{}")
+                    merged_data[key] = {...data[key], ...server_data[key]}
+                }
+                else
+                    merged_data[key] = data[key] || server_data[key]
+            }
+            for (const key in server_data) {
+                if (data[key] === undefined)
+                    merged_data[key] = server_data[key]
+            }
+            data = merged_data
+
+            const style = document.createElement('style');
+            style.innerHTML = data.css;
+            document.head.appendChild(style);
+        }
+    } catch (error) {
+        console.error("[Widget.vue] Error fetching or processing widget config:", error);
+        // data will remain as props, initStore will proceed with prop-based config for speechRecognitionAlwaysOn
     }
+
     initStore()
+    console.log("[Widget.vue] After initStore(), store.speechRecognitionAlwaysOn:", store.speechRecognitionAlwaysOn);
 }
 
 function initStore() {
@@ -167,7 +178,7 @@ function initStore() {
     store.initialSelectedPlConversationId = data.conversationId
     store.stickInputPrompt = data.stickInputPrompt
     store.speechRecognition = data.speechRecognition
-    store.speechRecognitionLang = data.speechRecognitionLang || store.speechRecognitionLang
+    store.speechRecognitionLang = data.speechRecognitionLang || store.speechRecognitionLang || 'en-US'
     store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn && !data.speechRecognitionPhraseActivation
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend || data.speechRecognitionAlwaysOn
     store.speechRecognitionPhraseActivation = !data.speechRecognitionAlwaysOn ? data.speechRecognitionPhraseActivation : undefined
@@ -183,6 +194,13 @@ function initStore() {
     store.speechSynthesisPitch = data.speechSynthesisPitch
     store.speechSynthesisRate = data.speechSynthesisRate
     store.speechSynthesisVoices = data.speechSynthesisVoices
+
+    if (store.speechRecognitionAlwaysOn) {
+        store.speechRecognition = false; // Disable click-to-talk if always-on is active
+        store.speechRecognitionAutoSend = true; // Auto-send is true for always-on
+    } else {
+        store.speechRecognitionAutoSend = data.speechRecognitionAutoSend;
+    }
 
     if (store.userId === undefined) {
         store.userId = getUserId()

@@ -63,6 +63,10 @@ export const useGlobalStore = defineStore('globalStore', {
             speechSynthesisRate: 1,
             speechSynthesisVoices: "",
             speechVoicesInitialized: false,
+            // New state for audio streaming and TTS control
+            backendTranscribing: false, // True when the backend audio socket is actively listening/transcribing
+            ttsShouldBeInterrupted: false, // Signal to interrupt TTS playback
+            isTTSPlaying: false, // True if TTS is currently playing
         }
         initializeSpeechVoices(_state)
         return _state
@@ -192,6 +196,13 @@ export const useGlobalStore = defineStore('globalStore', {
                 msgsToDelete.push(this.messages[i])
             }
             this.messages = this.messages.filter(msg => !msgsToDelete.includes(msg))
+        },
+        // Actions to manage TTS interruption
+        interruptTTS() {
+            this.ttsShouldBeInterrupted = true;
+        },
+        clearTTSInterrupt() {
+            this.ttsShouldBeInterrupted = false;
         }
     },
     getters: {

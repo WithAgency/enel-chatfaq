@@ -3,6 +3,7 @@
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :title="title"
                 :subtitle="subtitle" enable-logout :allow-attachments="true" 
                 :hideSources="hideSources" :stateOverride="stateOverride" :widgetConfigId="widgetId"
+                :speechRecognitionAlwaysOn="true"
         />
     </client-only>
 </template>
@@ -15,7 +16,7 @@ const chatfaqWS = ref(conf.public.chatfaqWS)
 const chatfaqAPI = ref(conf.public.chatfaqAPI)
 const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
-const fsmDef = ref("llm_fsm")
+const fsmDef = ref("enel_fsm")
 const hideSources = ref(false)
 const stateOverride = ref(null)
 const widgetId = ref("6a5fb833-cdcf-468a-ac22-8f1c2b7b1672")

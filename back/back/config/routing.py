@@ -1,5 +1,6 @@
 from django.urls import re_path
 
+from back.apps.audio.consumers import AudioTranscriptionConsumer
 from back.apps.broker.consumers.parse_consumer import ParseConsumer
 from back.apps.broker.consumers.rpc_consumer import RPCConsumer
 from back.apps.language_model.consumers import AIConsumer
@@ -21,6 +22,10 @@ websocket_urlpatterns = [
     re_path(
         r"back/ws/broker/ai/$",
         AIConsumer.as_asgi(),
+    ),
+    re_path(
+        r"ws/audio/transcribe/$",
+        AudioTranscriptionConsumer.as_asgi(),
     ),
     re_path(
         r"back/ws/broker/parse/$",

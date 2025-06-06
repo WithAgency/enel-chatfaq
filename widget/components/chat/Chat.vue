@@ -262,7 +262,15 @@ async function initAudioStreaming() {
     console.log("[Chat.vue] initAudioStreaming: Starting audio stream initialization...");
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                sampleRate: { ideal: 24000 },
+                channelCount: 1,
+                echoCancellation: true,
+                // autoGainControl: true,
+                noiseSuppression: true
+            }
+        });
         console.log("[Chat.vue] initAudioStreaming: getUserMedia successful. Stream:", stream);
         audioContext.value = new (window.AudioContext || window.webkitAudioContext)();
         console.log("[Chat.vue] initAudioStreaming: AudioContext created. Sample rate:", audioContext.value.sampleRate);
@@ -290,7 +298,7 @@ async function initAudioStreaming() {
                 resampledPcmFloat32 = rawPcmFloat32;
             } else {
                 resampledPcmFloat32 = resampleBuffer(rawPcmFloat32, audioContext.value.sampleRate, TARGET_SAMPLE_RATE);
-            }
+                        }
             
             const pcm16Array = float32ToInt16(resampledPcmFloat32);
             audioBufferQueue.value.push(...Array.from(pcm16Array)); // Add individual samples
